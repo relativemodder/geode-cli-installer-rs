@@ -5,6 +5,7 @@ use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 pub struct GameInfo {
+    #[allow(unused)]
     pub app_id: String,
     pub game_path: Option<PathBuf>,
     pub proton_prefix: Option<PathBuf>,
@@ -32,6 +33,7 @@ impl SteamGameFinder {
         &self.steam_root
     }
 
+    #[allow(unused)]
     pub fn get_library_folders(&self) -> &Vec<PathBuf> {
         &self.library_folders
     }
