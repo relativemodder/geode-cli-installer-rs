@@ -336,6 +336,7 @@ dependencies = [
  "indicatif",
  "reqwest",
  "serde_json",
+ "thiserror",
  "zip",
 ]
 
