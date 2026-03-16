@@ -11,7 +11,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use zip::ZipArchive;
 
 const GD_APP_ID: &str = "322170";
-const GEODE_API_URL: &str = "https://api.geode-sdk.org/v1/loader/versions/latest";
+const GEODE_API_URL: &str = "https://api.geode-sdk.org/v1/loader/versions/latest?platform=win";
 const GEODE_GITHUB_URL: &str = "https://github.com/geode-sdk/geode/releases/download";
 
 pub struct GeodeInstaller {
@@ -27,8 +27,7 @@ pub struct InstallationPaths {
 
 impl GeodeInstaller {
     pub fn new() -> Result<Self, InstallerError> {
-        let client = Client::builder()
-            .build()?;
+        let client = Client::builder().build()?;
 
         Ok(Self {
             finder: SteamGameFinder::new(),
@@ -38,7 +37,9 @@ impl GeodeInstaller {
 
     /// Install Geode to Steam's Geometry Dash installation
     pub fn install_to_steam(&self) -> Result<(), InstallerError> {
-        let steam_root = self.finder.steam_root()
+        let steam_root = self
+            .finder
+            .steam_root()
             .ok_or_else(|| InstallerError::Installation("Can't find Steam installation".into()))?;
 
         println!("Steam root found at: {:?}", steam_root);
@@ -67,13 +68,14 @@ impl GeodeInstaller {
         Ok(())
     }
 
-
     fn locate_geometry_dash(&self) -> Result<InstallationPaths, InstallerError> {
-        let game_info = self.finder.get_game_info(GD_APP_ID)
-            .ok_or_else(|| InstallerError::Installation("Can't find Geometry Dash installation".into()))?;
+        let game_info = self.finder.get_game_info(GD_APP_ID).ok_or_else(|| {
+            InstallerError::Installation("Can't find Geometry Dash installation".into())
+        })?;
 
-        let proton_prefix = game_info.proton_prefix
-            .ok_or_else(|| InstallerError::Installation("Can't find Proton prefix for Geometry Dash".into()))?;
+        let proton_prefix = game_info.proton_prefix.ok_or_else(|| {
+            InstallerError::Installation("Can't find Proton prefix for Geometry Dash".into())
+        })?;
 
         Ok(InstallationPaths {
             game_path: game_info.game_path,
@@ -106,7 +108,10 @@ impl GeodeInstaller {
 
     fn get_download_url(&self) -> Result<String, InstallerError> {
         let tag = self.fetch_latest_tag()?;
-        Ok(format!("{}/{}/geode-{}-win.zip", GEODE_GITHUB_URL, tag, tag))
+        Ok(format!(
+            "{}/{}/geode-{}-win.zip",
+            GEODE_GITHUB_URL, tag, tag
+        ))
     }
 
     fn fetch_latest_tag(&self) -> Result<String, InstallerError> {
@@ -115,14 +120,19 @@ impl GeodeInstaller {
 
         if let Some(error) = json["error"].as_str() {
             if !error.is_empty() {
-                return Err(InstallerError::Unknown(format!("Geode API error: {}", error)));
+                return Err(InstallerError::Unknown(format!(
+                    "Geode API error: {}",
+                    error
+                )));
             }
         }
 
         json["payload"]["tag"]
             .as_str()
             .map(String::from)
-            .ok_or_else(|| InstallerError::Unknown("Failed to extract version tag from API response".into()))
+            .ok_or_else(|| {
+                InstallerError::Unknown("Failed to extract version tag from API response".into())
+            })
     }
 
     fn download_and_extract(&self, url: &str, destination: &Path) -> Result<(), InstallerError> {
@@ -138,22 +148,26 @@ impl GeodeInstaller {
         Ok(())
     }
 
-
     fn http_get(&self, url: &str) -> Result<String, InstallerError> {
         let response = self.client.get(url).send()?;
 
         if !response.status().is_success() {
-            return Err(InstallerError::Unknown(format!("HTTP error {}", response.status())));
+            return Err(InstallerError::Unknown(format!(
+                "HTTP error {}",
+                response.status()
+            )));
         }
 
         Ok(response.text()?)
     }
 
-
     fn download_file(&self, url: &str, output: &Path) -> Result<(), InstallerError> {
         let mut response = self.client.get(url).send()?;
         if !response.status().is_success() {
-            return Err(InstallerError::Unknown(format!("HTTP error {}", response.status())));
+            return Err(InstallerError::Unknown(format!(
+                "HTTP error {}",
+                response.status()
+            )));
         }
 
         let total_size = response.content_length().unwrap_or(0);
@@ -231,7 +245,10 @@ impl GeodeInstaller {
     fn patch_wine_registry(&self, prefix: &Path) -> Result<(), InstallerError> {
         let user_reg = prefix.join("user.reg");
         if !user_reg.exists() {
-            return Err(InstallerError::Unknown(format!("Wine registry file not found: {:?}", user_reg)));
+            return Err(InstallerError::Unknown(format!(
+                "Wine registry file not found: {:?}",
+                user_reg
+            )));
         }
 
         let mut content = fs::read_to_string(&user_reg)?;

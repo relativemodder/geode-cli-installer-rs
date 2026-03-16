@@ -3,8 +3,8 @@ use std::io::{self, Write};
 use std::path::Path;
 use std::process;
 
-mod utils;
 mod errors;
+mod utils;
 
 use errors::InstallerError;
 use utils::geode_installer::GeodeInstaller;
@@ -23,9 +23,18 @@ impl UserInterface {
     }
 
     fn print_header() {
-        println!("{}", "======================================".yellow().bold());
-        println!("{}", "       Geode Installer for Linux     ".yellow().bold());
-        println!("{}", "======================================".yellow().bold());
+        println!(
+            "{}",
+            "======================================".yellow().bold()
+        );
+        println!(
+            "{}",
+            "       Geode Installer for Linux     ".yellow().bold()
+        );
+        println!(
+            "{}",
+            "======================================".yellow().bold()
+        );
         println!();
     }
 
@@ -33,7 +42,11 @@ impl UserInterface {
         println!("{}", "Select an action:".white().bold());
         println!();
         println!("{} Install to {}", "1.".blue().bold(), "Steam".blue());
-        println!("{} Install to {} prefix", "2.".magenta().bold(), "Wine".magenta());
+        println!(
+            "{} Install to {} prefix",
+            "2.".magenta().bold(),
+            "Wine".magenta()
+        );
         println!("{} Quit", "0.".red().bold());
         println!();
     }
@@ -64,7 +77,11 @@ impl UserInterface {
 
     fn print_success() {
         println!();
-        println!("{}", "✅ Geode has been successfully installed!".green().bold());
+        println!(
+            "{}",
+            "✅ Geode has been successfully installed!".green().bold()
+        );
+        Self::read_input("Press Enter to continue...");
     }
 
     fn print_error(message: &InstallerError) {
@@ -97,10 +114,8 @@ impl InstallationHandler {
         let game_path = UserInterface::read_input("Enter your Geometry Dash path: ");
         let wine_prefix = UserInterface::read_input("Enter your Wine prefix path: ");
 
-        self.installer.install_to_wine(
-            Path::new(&wine_prefix),
-            Path::new(&game_path),
-        )
+        self.installer
+            .install_to_wine(Path::new(&wine_prefix), Path::new(&game_path))
     }
 
     fn execute(&self, choice: MenuChoice) -> Result<(), InstallerError> {
@@ -133,7 +148,8 @@ fn run_interactive_loop(handler: &InstallationHandler) {
 }
 
 fn main() {
-    let handler = InstallationHandler::new().map_err(|e| InstallerError::Init(e.to_string()))
+    let handler = InstallationHandler::new()
+        .map_err(|e| InstallerError::Init(e.to_string()))
         .unwrap_or_else(|err| {
             eprintln!("{}", err.format());
             process::exit(1);
